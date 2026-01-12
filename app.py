@@ -10,15 +10,22 @@ def load_model():
     global model
     if model is None:
         if not os.path.exists("model.pkl"):
-            raise FileNotFoundError("model.pkl not found. Train the model first.")
-        with open("model.pkl", "rb") as f:
-            model = pickle.load(f)
+            return None
+        try:
+            with open("model.pkl", "rb") as f:
+                model = pickle.load(f)
+        except Exception:
+            model = None
     return model
 
 @app.route("/predict", methods=["POST"])
 def predict():
     features = request.json["features"]
     mdl = load_model()
+
+    if mdl is None:
+        return jsonify({"error": "Model not available"}), 500
+
     prediction = mdl.predict([features])
     return jsonify({"prediction": int(prediction[0])})
 
